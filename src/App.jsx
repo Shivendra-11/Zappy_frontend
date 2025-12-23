@@ -25,7 +25,9 @@ function App() {
         alignItems: 'center', 
         height: '100vh' 
       }}>
-        <h2>Loading...</h2>
+       <div>
+        <h2>Please wait...</h2>
+       </div>
       </div>
     )
   }
