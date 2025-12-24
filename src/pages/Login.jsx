@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { toast } from 'react-toastify'
 import './Auth.css'
 
 const Login = () => {
@@ -19,9 +20,22 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    const email = formData.email.trim()
+    const password = formData.password
+
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+    if (!emailOk) {
+      toast.error('Please enter a valid email')
+      return
+    }
+    if (!password || password.length < 6) {
+      toast.error('Password must be at least 6 characters')
+      return
+    }
+
     setLoading(true)
 
-    const result = await login(formData.email, formData.password)
+    const result = await login(email, password)
     
     if (result.success) {
       navigate('/')
@@ -47,6 +61,8 @@ const Login = () => {
               value={formData.email}
               onChange={handleChange}
               required
+              autoCapitalize="none"
+              autoCorrect="off"
             />
           </div>
           
@@ -59,6 +75,7 @@ const Login = () => {
               value={formData.password}
               onChange={handleChange}
               required
+              minLength={6}
             />
           </div>
           

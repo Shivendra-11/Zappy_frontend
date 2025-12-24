@@ -14,8 +14,8 @@ const Dashboard = () => {
 
   const fetchEvents = async () => {
     try {
-      const data = await eventAPI.getEvents()
-      setEvents(data.events || [])
+      const eventsData = await eventAPI.getEvents({ includeDeleted: true })
+      setEvents(eventsData.events || [])
     } catch (error) {
       console.error('Failed to fetch events:', error)
       setEvents([])
@@ -46,34 +46,42 @@ const Dashboard = () => {
   const handleDeleteEvent = async (e, eventId, eventName) => {
     e.stopPropagation()
 
-    const ok = window.confirm(`Delete "${eventName}"? This cannot be undone.`)
+    const ok = window.confirm(`Delete "${eventName}"? It will be moved to Deleted Events.`)
     if (!ok) return
 
     try {
       await eventAPI.deleteEvent(eventId)
-      toast.success('Event deleted')
-      setEvents((prev) => prev.filter((ev) => ev._id !== eventId))
+      toast.success('Event moved to deleted list')
+      await fetchEvents()
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to delete event')
     }
   }
+
+  const activeEvents = events.filter((e) => !e.isDeleted)
+  const deletedEvents = events.filter((e) => e.isDeleted)
 
   return (
     <>
       <div className="dashboard-container">
         <div className="dashboard-header">
           <h1>Event Dashboard</h1>
-          <button 
-            className="btn btn-primary"
-            onClick={() => navigate('/create-event')}
-          >
-            + Create New Event
-          </button>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            <button className="btn btn-secondary" onClick={() => navigate('/analytics')}>
+              Analytics Dashboard
+            </button>
+            <button 
+              className="btn btn-primary"
+              onClick={() => navigate('/create-event')}
+            >
+              + Create New Event
+            </button>
+          </div>
         </div>
 
         {loading ? (
           <div className="loading">Loading events...</div>
-        ) : events.length === 0 ? (
+        ) : activeEvents.length === 0 && deletedEvents.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">📅</div>
             <h2>No Events Yet</h2>
@@ -86,8 +94,10 @@ const Dashboard = () => {
             </button>
           </div>
         ) : (
-          <div className="events-grid">
-            {events.map((event) => (
+          <>
+            {activeEvents.length > 0 && (
+              <div className="events-grid">
+                {activeEvents.map((event) => (
               <div 
                 key={event._id} 
                 className="event-card"
@@ -161,8 +171,47 @@ const Dashboard = () => {
                   </button>
                 </div>
               </div>
-            ))}
-          </div>
+                ))}
+              </div>
+            )}
+
+            {deletedEvents.length > 0 && (
+              <div className="deleted-section">
+                <h2 className="deleted-title">Deleted Events</h2>
+                <div className="events-grid">
+                  {deletedEvents.map((event) => (
+                    <div
+                      key={event._id}
+                      className="event-card deleted"
+                      onClick={() => toast.info('This event is deleted (read-only)')}
+                    >
+                      <div className="event-header">
+                        <h3>{event.eventName}</h3>
+                        <span className="status-badge" style={{ backgroundColor: '#6b7280' }}>
+                          deleted
+                        </span>
+                      </div>
+
+                      <div className="event-details">
+                        <div className="detail-row">
+                          <span className="detail-label">📅 Date:</span>
+                          <span>{formatDate(event.eventDate)}</span>
+                        </div>
+                        <div className="detail-row">
+                          <span className="detail-label">👤 Customer:</span>
+                          <span>{event.customerName}</span>
+                        </div>
+                      </div>
+
+                      <div className="event-footer">
+                        <small>Deleted: {event.deletedAt ? formatDate(event.deletedAt) : '—'}</small>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </>

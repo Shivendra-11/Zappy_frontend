@@ -2,7 +2,6 @@ import axios from 'axios'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
-// Get auth token from localStorage
 const getAuthToken = () => {
   return localStorage.getItem('token')
 }
@@ -29,8 +28,14 @@ api.interceptors.request.use(
 // Event API
 export const eventAPI = {
   // Get all events
-  getEvents: async () => {
-    const response = await api.get('/events')
+  getEvents: async (params) => {
+    const response = await api.get('/events', { params })
+    return response.data
+  },
+
+  // Analytics summary
+  getAnalytics: async () => {
+    const response = await api.get('/events/analytics')
     return response.data
   },
 

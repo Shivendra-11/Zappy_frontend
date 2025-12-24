@@ -20,6 +20,11 @@ const EventDetails = () => {
   // OTP states
   const [startOtpInput, setStartOtpInput] = useState('')
   const [closingOtpInput, setClosingOtpInput] = useState('')
+
+  // OTP countdown (10 minutes)
+  const OTP_TTL_MS = 10 * 60 * 1000
+  const [startOtpRemainingMs, setStartOtpRemainingMs] = useState(null)
+  const [closingOtpRemainingMs, setClosingOtpRemainingMs] = useState(null)
   
   // Setup photos states
   const [prePhotos, setPrePhotos] = useState([])
@@ -30,6 +35,45 @@ const EventDetails = () => {
   useEffect(() => {
     fetchEventDetails()
   }, [resolvedEventId])
+
+  const computeRemainingMs = (sentAt) => {
+    if (!sentAt) return null
+    const sentAtMs = new Date(sentAt).getTime()
+    if (Number.isNaN(sentAtMs)) return null
+    return Math.max(0, OTP_TTL_MS - (Date.now() - sentAtMs))
+  }
+
+  const formatRemaining = (ms) => {
+    if (ms == null) return ''
+    const totalSeconds = Math.ceil(ms / 1000)
+    const minutes = Math.floor(totalSeconds / 60)
+    const seconds = totalSeconds % 60
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+  }
+
+  useEffect(() => {
+    if (!event?.startOTP?.sentAt || event?.startOTP?.isVerified) {
+      setStartOtpRemainingMs(null)
+      return
+    }
+
+    const tick = () => setStartOtpRemainingMs(computeRemainingMs(event.startOTP.sentAt))
+    tick()
+    const id = setInterval(tick, 1000)
+    return () => clearInterval(id)
+  }, [event?.startOTP?.sentAt, event?.startOTP?.isVerified])
+
+  useEffect(() => {
+    if (!event?.closingOTP?.sentAt || event?.closingOTP?.isVerified) {
+      setClosingOtpRemainingMs(null)
+      return
+    }
+
+    const tick = () => setClosingOtpRemainingMs(computeRemainingMs(event.closingOTP.sentAt))
+    tick()
+    const id = setInterval(tick, 1000)
+    return () => clearInterval(id)
+  }, [event?.closingOTP?.sentAt, event?.closingOTP?.isVerified])
 
   const fetchEventDetails = async () => {
     if (!resolvedEventId) {
@@ -111,7 +155,7 @@ const EventDetails = () => {
   }
 
   // Start OTP Handlers
-  const handleTriggerStartOTP = async () => {
+  const handleTriggerStartOTP = async (mode = 'send') => {
     try {
       const data = await eventAPI.triggerStartOTP(resolvedEventId)
       setEvent(prevEvent => ({
@@ -119,13 +163,17 @@ const EventDetails = () => {
         ...data.event,
         startOTP: data.event.startOTP
       }))
-      toast.info(`OTP sent to customer: ${data.event.startOTP.code}`)
+      toast.info(mode === 'resend' ? 'Start OTP resent to customer email' : 'OTP sent to customer email')
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to trigger OTP')
     }
   }
 
   const handleVerifyStartOTP = async () => {
+    if (startOtpRemainingMs !== null && startOtpRemainingMs <= 0) {
+      toast.error('OTP expired. Please resend a new OTP.')
+      return
+    }
     if (!startOtpInput || startOtpInput.length !== 6) {
       toast.error('Please enter a valid 6-digit OTP')
       return
@@ -184,7 +232,7 @@ const EventDetails = () => {
   }
 
   // Closing OTP Handlers
-  const handleTriggerClosingOTP = async () => {
+  const handleTriggerClosingOTP = async (mode = 'send') => {
     try {
       const data = await eventAPI.triggerClosingOTP(resolvedEventId)
       setEvent(prevEvent => ({
@@ -192,13 +240,17 @@ const EventDetails = () => {
         ...data.event,
         closingOTP: data.event.closingOTP
       }))
-      toast.info(`Closing OTP sent to customer: ${data.event.closingOTP.code}`)
+      toast.info(mode === 'resend' ? 'Closing OTP resent to customer email' : 'Closing OTP sent to customer email')
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to trigger closing OTP')
     }
   }
 
   const handleVerifyClosingOTP = async () => {
+    if (closingOtpRemainingMs !== null && closingOtpRemainingMs <= 0) {
+      toast.error('OTP expired. Please resend a new OTP.')
+      return
+    }
     if (!closingOtpInput || closingOtpInput.length !== 6) {
       toast.error('Please enter a valid 6-digit OTP')
       return
@@ -364,17 +416,30 @@ const EventDetails = () => {
               ) : (
                 <div className="action-section">
                   <p>Send an OTP to the customer to confirm event start</p>
-                  {!event.startOTP?.code ? (
+                  {!event.startOTP?.sentAt ? (
                     <button 
                       className="btn btn-primary"
-                      onClick={handleTriggerStartOTP}
+                      onClick={() => handleTriggerStartOTP('send')}
                     >
                       Send Start OTP to Customer
                     </button>
                   ) : (
                     <div className="otp-verify-section">
                       <p className="otp-sent">OTP sent to {event.customerEmail}</p>
-                      <p className="otp-display">OTP: <strong>{event.startOTP.code}</strong></p>
+                      <div className="otp-timer-row">
+                        <span className="otp-timer">
+                          {startOtpRemainingMs !== null && startOtpRemainingMs > 0
+                            ? `Expires in ${formatRemaining(startOtpRemainingMs)}`
+                            : 'OTP expired — resend to get a new code'}
+                        </span>
+                        <button
+                          className="btn btn-secondary"
+                          onClick={() => handleTriggerStartOTP('resend')}
+                        >
+                          Resend OTP
+                        </button>
+                      </div>
+                      <p className="otp-display">Check the customer's email for the code</p>
                       <div className="otp-input-group">
                         <input
                           type="text"
@@ -386,6 +451,7 @@ const EventDetails = () => {
                         <button 
                           className="btn btn-primary"
                           onClick={handleVerifyStartOTP}
+                          disabled={startOtpRemainingMs !== null && startOtpRemainingMs <= 0}
                         >
                           Verify OTP
                         </button>
@@ -491,17 +557,30 @@ const EventDetails = () => {
               ) : (
                 <div className="action-section">
                   <p>Send a closing OTP to the customer to confirm event completion</p>
-                  {!event.closingOTP?.code ? (
+                  {!event.closingOTP?.sentAt ? (
                     <button 
                       className="btn btn-primary"
-                      onClick={handleTriggerClosingOTP}
+                      onClick={() => handleTriggerClosingOTP('send')}
                     >
                       Send Closing OTP to Customer
                     </button>
                   ) : (
                     <div className="otp-verify-section">
                       <p className="otp-sent">OTP sent to {event.customerEmail}</p>
-                      <p className="otp-display">OTP: <strong>{event.closingOTP.code}</strong></p>
+                      <div className="otp-timer-row">
+                        <span className="otp-timer">
+                          {closingOtpRemainingMs !== null && closingOtpRemainingMs > 0
+                            ? `Expires in ${formatRemaining(closingOtpRemainingMs)}`
+                            : 'OTP expired — resend to get a new code'}
+                        </span>
+                        <button
+                          className="btn btn-secondary"
+                          onClick={() => handleTriggerClosingOTP('resend')}
+                        >
+                          Resend OTP
+                        </button>
+                      </div>
+                      <p className="otp-display">Check the customer's email for the code</p>
                       <div className="otp-input-group">
                         <input
                           type="text"
@@ -513,6 +592,7 @@ const EventDetails = () => {
                         <button 
                           className="btn btn-primary"
                           onClick={handleVerifyClosingOTP}
+                          disabled={closingOtpRemainingMs !== null && closingOtpRemainingMs <= 0}
                         >
                           Verify & Close Event
                         </button>

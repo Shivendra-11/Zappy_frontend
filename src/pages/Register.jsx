@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { toast } from 'react-toastify'
 import './Auth.css'
 
 const Register = () => {
@@ -21,9 +22,39 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    const name = formData.name.trim()
+    const email = formData.email.trim()
+    const phone = formData.phone.trim()
+    const password = formData.password
+
+    if (name.length < 2) {
+      toast.error('Name must be at least 2 characters')
+      return
+    }
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+    if (!emailOk) {
+      toast.error('Please enter a valid email')
+      return
+    }
+    const phoneOk = /^[0-9+\-()\s]{7,20}$/.test(phone)
+    if (!phoneOk) {
+      toast.error('Please enter a valid phone (7-20 digits/characters)')
+      return
+    }
+    const strongPasswordOk = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/.test(password)
+    if (!strongPasswordOk) {
+      toast.error('Password must be 8+ chars and include uppercase, lowercase, number, and special character')
+      return
+    }
+
     setLoading(true)
 
-    const result = await register(formData)
+    const result = await register({
+      name,
+      email,
+      phone,
+      password
+    })
     
     if (result.success) {
       navigate('/')
@@ -49,6 +80,8 @@ const Register = () => {
               value={formData.name}
               onChange={handleChange}
               required
+              minLength={2}
+              maxLength={60}
             />
           </div>
 
@@ -61,6 +94,8 @@ const Register = () => {
               value={formData.email}
               onChange={handleChange}
               required
+              autoCapitalize="none"
+              autoCorrect="off"
             />
           </div>
 
@@ -73,6 +108,9 @@ const Register = () => {
               value={formData.phone}
               onChange={handleChange}
               required
+              minLength={7}
+              maxLength={20}
+              pattern="[0-9+\-()\s]{7,20}"
             />
           </div>
           
@@ -85,7 +123,9 @@ const Register = () => {
               value={formData.password}
               onChange={handleChange}
               required
-              minLength="6"
+              minLength={8}
+              pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z\\d]).{8,}"
+              title="8+ characters with uppercase, lowercase, number, and special character"
             />
           </div>
           

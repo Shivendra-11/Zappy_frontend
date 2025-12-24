@@ -23,8 +23,36 @@ const CreateEvent = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    if (!formData.location || formData.location.trim().length === 0) {
+    const eventName = formData.eventName.trim()
+    const location = formData.location.trim()
+    const customerName = formData.customerName.trim()
+    const customerEmail = formData.customerEmail.trim()
+    const customerPhone = formData.customerPhone.trim()
+
+    if (eventName.length < 2) {
+      toast.error('Event name must be at least 2 characters')
+      return
+    }
+    if (!formData.eventDate) {
+      toast.error('Please select event date')
+      return
+    }
+    if (!location) {
       toast.error('Please provide event location')
+      return
+    }
+    if (customerName.length < 2) {
+      toast.error('Customer name must be at least 2 characters')
+      return
+    }
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail)
+    if (!emailOk) {
+      toast.error('Please provide a valid customer email')
+      return
+    }
+    const phoneOk = /^[0-9+\-()\s]{7,20}$/.test(customerPhone)
+    if (!phoneOk) {
+      toast.error('Please provide a valid customer phone (7-20 digits/characters)')
       return
     }
 
@@ -33,7 +61,12 @@ const CreateEvent = () => {
     try {
       const payload = {
         ...formData,
-        location: formData.location.trim()
+        eventName,
+        eventDate: formData.eventDate,
+        location,
+        customerName,
+        customerEmail,
+        customerPhone
       }
       const data = await eventAPI.createEvent(payload)
       toast.success('Event created successfully!')
@@ -50,7 +83,7 @@ const CreateEvent = () => {
       <div className="create-event-container">
         <div className="create-event-box">
           <h1>Create New Event</h1>
-          <p className="subtitle">Fill in the details to create a new event for tracking</p>
+          <p className="subtitle">Fill in the details to creates a new event for tracking</p>
 
           <form onSubmit={handleSubmit} className="create-event-form">
             <div className="form-section">
@@ -65,6 +98,8 @@ const CreateEvent = () => {
                   value={formData.eventName}
                   onChange={handleChange}
                   required
+                  minLength={2}
+                  maxLength={120}
                 />
               </div>
 
@@ -89,6 +124,8 @@ const CreateEvent = () => {
                     value={formData.location}
                     onChange={handleChange}
                     required
+                    minLength={2}
+                    maxLength={200}
                   />
                 </div>
               </div>
@@ -106,6 +143,8 @@ const CreateEvent = () => {
                   value={formData.customerName}
                   onChange={handleChange}
                   required
+                  minLength={2}
+                  maxLength={120}
                 />
               </div>
 
@@ -119,6 +158,8 @@ const CreateEvent = () => {
                     value={formData.customerEmail}
                     onChange={handleChange}
                     required
+                    autoCapitalize="none"
+                    autoCorrect="off"
                   />
                 </div>
 
@@ -131,6 +172,9 @@ const CreateEvent = () => {
                     value={formData.customerPhone}
                     onChange={handleChange}
                     required
+                    minLength={7}
+                    maxLength={20}
+                    pattern="[0-9+\-()\s]{7,20}"
                   />
                 </div>
               </div>

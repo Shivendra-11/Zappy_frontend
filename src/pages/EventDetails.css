@@ -306,6 +306,20 @@
   font-weight: 800;
 }
 
+.otp-timer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.otp-timer {
+  color: #64748b;
+  font-weight: 600;
+}
+
 .otp-input-group {
   display: flex;
   gap: 16px;

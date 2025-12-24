@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { FaHome, FaPlus, FaSignOutAlt, FaUser } from 'react-icons/fa'
+import { FaChartBar, FaHome, FaPlus, FaSignOutAlt, FaUser } from 'react-icons/fa'
 import './Navbar.css'
 
 const Navbar = () => {
@@ -28,6 +28,11 @@ const Navbar = () => {
           <Link to="/create-event" className="navbar-item" title="Create Event">
             <FaPlus size={20} />
             <span>New Event</span>
+          </Link>
+
+          <Link to="/analytics" className="navbar-item" title="Analytics Dashboard">
+            <FaChartBar size={20} />
+            <span>Analytics</span>
           </Link>
           
           <div className="navbar-user">

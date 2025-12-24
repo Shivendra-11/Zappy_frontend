@@ -26,6 +26,60 @@
   background-clip: text;
   margin: 0;
   letter-spacing: -1px;
+
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.analytics-card {
+  background: rgba(255, 255, 255, 0.95);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 18px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
+.analytics-label {
+  color: #64748b;
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.analytics-value {
+  font-size: 28px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-top: 6px;
+}
+
+.analytics-sub {
+  color: #64748b;
+  font-size: 13px;
+  margin-top: 6px;
+  font-weight: 600;
+}
+
+.deleted-section {
+  margin-top: 28px;
+}
+
+.deleted-title {
+  font-size: 20px;
+  color: #0f172a;
+  margin-bottom: 14px;
+  font-weight: 800;
+}
+
+.event-card.deleted {
+  opacity: 0.75;
+}
   animation: slideUp 0.8s ease-out;
 }
 

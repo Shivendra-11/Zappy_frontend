@@ -9,6 +9,7 @@ import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import CreateEvent from './pages/CreateEvent'
 import EventDetails from './pages/EventDetails'
+import Analytics from './pages/Analytics'
 
 // Components
 import Navbar from './components/Navbar'
@@ -61,6 +62,14 @@ function App() {
             element={
               <PrivateRoute>
                 <CreateEvent />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/analytics"
+            element={
+              <PrivateRoute>
+                <Analytics />
               </PrivateRoute>
             }
           />
