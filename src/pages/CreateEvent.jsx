@@ -50,7 +50,7 @@ const CreateEvent = () => {
       toast.error('Please provide a valid customer email')
       return
     }
-    const phoneOk = /^[0-9+\-()\s]{7,20}$/.test(customerPhone)
+    const phoneOk = /^[0-9+() -]{7,20}$/.test(customerPhone)
     if (!phoneOk) {
       toast.error('Please provide a valid customer phone (7-20 digits/characters)')
       return
@@ -174,7 +174,6 @@ const CreateEvent = () => {
                     required
                     minLength={7}
                     maxLength={20}
-                    pattern="[0-9+\-()\s]{7,20}"
                   />
                 </div>
               </div>

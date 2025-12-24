@@ -36,7 +36,7 @@ const Register = () => {
       toast.error('Please enter a valid email')
       return
     }
-    const phoneOk = /^[0-9+\-()\s]{7,20}$/.test(phone)
+    const phoneOk = /^[0-9+() -]{7,20}$/.test(phone)
     if (!phoneOk) {
       toast.error('Please enter a valid phone (7-20 digits/characters)')
       return
@@ -110,7 +110,6 @@ const Register = () => {
               required
               minLength={7}
               maxLength={20}
-              pattern="[0-9+\-()\s]{7,20}"
             />
           </div>
           
@@ -124,7 +123,6 @@ const Register = () => {
               onChange={handleChange}
               required
               minLength={8}
-              pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z\\d]).{8,}"
               title="8+ characters with uppercase, lowercase, number, and special character"
             />
           </div>

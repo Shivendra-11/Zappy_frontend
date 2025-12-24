@@ -121,4 +121,22 @@ The application is fully responsive and works on:
 - Tablet (768px+)
 - Mobile (320px+)
 
-#completed
+## 🤝 Contributing
+
+This is an internship assessment project for Zappy.
+
+## 📄 License
+
+This project is created as part of the Zappy FullStack Internship Assessment.
+
+## 👨‍💻 Developer
+
+Created by a candidate for Zappy FullStack Internship position.
+
+## 📞 Support
+
+For questions about the assessment, please contact Zappy's recruitment team.
+
+---
+
+**Note:** Make sure to get valid Cloudinary credentials before running the application to enable image uploads!
